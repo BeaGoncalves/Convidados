@@ -9,11 +9,13 @@ import androidx.lifecycle.ViewModelProvider
 import br.com.estudos.convidados.viewmodel.FormularioDeConvidadoViewModel
 import br.com.estudos.convidados.R
 import br.com.estudos.convidados.databinding.ActivityFormularioDeConvidadoBinding
+import br.com.estudos.convidados.service.constants.ConvidadoConstants
 
 class FormularioDeConvidadoActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var mViewModel : FormularioDeConvidadoViewModel
     private lateinit var binding: ActivityFormularioDeConvidadoBinding
+    private var mConvidadoId : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,17 @@ class FormularioDeConvidadoActivity : AppCompatActivity(), View.OnClickListener 
 
         setListeners()
         observe()
+        loadData()
+
+        binding.radioPresente.isChecked = true
+    }
+
+    private fun loadData() {
+        val bundle = intent.extras
+        if (bundle != null) {
+            mConvidadoId = bundle.getInt(ConvidadoConstants.CONVIDADOID)
+            mViewModel.load(mConvidadoId)
+        }
     }
 
     override fun onClick(v: View) {
@@ -35,7 +48,7 @@ class FormularioDeConvidadoActivity : AppCompatActivity(), View.OnClickListener 
             val name = binding.editName.text.toString()
             val presence = binding.radioPresente.isChecked
 
-            mViewModel.save(name, presence)
+            mViewModel.save(mConvidadoId, name, presence)
         }
     }
     private fun observe() {
@@ -44,6 +57,16 @@ class FormularioDeConvidadoActivity : AppCompatActivity(), View.OnClickListener 
                 Toast.makeText(applicationContext, "Sucesso", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(applicationContext, "Falha", Toast.LENGTH_LONG).show()
+            }
+            finish()
+        })
+
+        mViewModel.convidado.observe(this, Observer {
+            binding.editName.setText (it.nome)
+            if (it.presence) {
+                binding.radioPresente.isChecked = true
+            } else {
+                binding.radioAusente.isChecked = true
             }
         })
     }
